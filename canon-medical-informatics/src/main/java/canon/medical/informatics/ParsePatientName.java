@@ -6,9 +6,9 @@ import java.util.*;
 
 public class ParsePatientName
 {
-    // double default buffer size, make sense for big files
-    private static final int INPUT_BUFFER_SIZE = 16384;
-    private static final int OUTPUT_BUFFER_SIZE = 16384;
+    // increase default buffer size, make sense for big files
+    private static final int INPUT_BUFFER_SIZE = 32768;
+    private static final int OUTPUT_BUFFER_SIZE = 32768;
 
     private static final double NANO_SEC = 1_000_000_000.;
 
