@@ -48,8 +48,7 @@ public class ParsePatientName
                 if (result.containsKey(patientNameHash)) {
                     result.get(patientNameHash).add(line);
                 } else {
-                    // ArrayList will work faster for small files
-                    List<String> patientList = new LinkedList<>();
+                    List<String> patientList = new ArrayList<>();
                     patientList.add(line);
                     result.put(patientNameHash, patientList);
                 }
