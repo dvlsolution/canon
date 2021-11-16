@@ -1,8 +1,6 @@
 package canon.medical.informatics;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class ParsePatientName
@@ -10,7 +8,7 @@ public class ParsePatientName
     private static final char PID_SEGMENT_DELIMITER = ',';
     private static final char PATIENT_NAME_DELIMITER = '^';
 
-    private class Pair {
+    private static class Pair {
         int beginIndex;
         int endIndex;
 
@@ -28,7 +26,7 @@ public class ParsePatientName
 
         ParsePatientName ppn = new ParsePatientName();
         try {
-            Map<Integer, List<String>> output = ppn.parseInputFile(args[0]);
+            final Map<Integer, List<String>> output = ppn.parseInputFile(args[0]);
             ppn.printOutput(output);
         }
         catch (IOException e) {
@@ -37,11 +35,12 @@ public class ParsePatientName
     }
 
     private Map<Integer, List<String>> parseInputFile(String inputFileName) throws IOException {
-        Map<Integer, List<String>> result = new LinkedHashMap<>();
+        final Map<Integer, List<String>> result = new LinkedHashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(inputFileName))) {
             String line;
+            int patientNameHash;
             while ((line = br.readLine()) != null) {
-                int patientNameHash = extractPatientName(line);
+                patientNameHash = extractPatientName(line);
                 if (result.containsKey(patientNameHash)) {
                     result.get(patientNameHash).add(line);
                 } else {
@@ -68,26 +67,30 @@ public class ParsePatientName
         Optimized solution that minimized number of String objects creation
      */
     private Integer extractPatientName(String line) {
-        Pair patientFullName = extractPatientFullName(line);
+        final Pair patientFullName = extractPatientFullName(line);
 
-        int finding = 0, lastNameEndIndex = patientFullName.endIndex, index = patientFullName.beginIndex;
+        char c;
+        int hash = 0;
+        int finding = 0, index = patientFullName.beginIndex;
         while (finding < 2 && index < patientFullName.endIndex) {
-            char c = line.charAt(index++);
+            c = line.charAt(index++);
             if (c == PATIENT_NAME_DELIMITER) {
                 finding++;
             }
             else {
-                lastNameEndIndex = index;
+                hash = 31 * hash + Character.toLowerCase(c);
             }
         }
 
-        return hashCode(line, patientFullName.beginIndex, lastNameEndIndex);
+        return hash;
     }
 
     private Pair extractPatientFullName(String line) {
+        char c;
         int finding = 0, index = 0, beginIndex = 0, endIndex = 0;
-        while (finding < 2 && index < line.length()) {
-            char c = line.charAt(index++);
+        int length = line.length();
+        while (finding < 2 && index < length) {
+            c = line.charAt(index++);
             if (c == PID_SEGMENT_DELIMITER) {
                 if (finding == 0) {
                     beginIndex = index;
@@ -103,25 +106,19 @@ public class ParsePatientName
         return new Pair(beginIndex, endIndex);
     }
 
-    private int hashCode(String str, int beginIndex, int endIndex) {
-        int hash = 0;
-        if (str.length() > 0) {
-            int index = beginIndex;
-            while (index < endIndex) {
-                hash = 31 * hash + Character.toLowerCase(str.charAt(index++));
-            }
-        }
-
-        return hash;
-    }
-
-    private void printOutput(Map<Integer, List<String>> output) {
+    private void printOutput(final Map<Integer, List<String>> output) {
         int index = 0;
-        for (Integer key : output.keySet()) {
-            System.out.println(index++ + ":");
-            for (String patient : output.get(key)) {
-                System.out.println(patient);
+        try (OutputStream out = new BufferedOutputStream(System.out)) {
+            for (Integer key : output.keySet()) {
+                out.write((index++ + "\n").getBytes());
+                for (String patient : output.get(key)) {
+                    out.write((patient + "\n").getBytes());
+                }
             }
+            out.flush();
+        }
+        catch (IOException e) {
+            System.err.println(e.getMessage());
         }
     }
 }
