@@ -14,6 +14,7 @@ public class ParsePatientName
 
     private static final char PID_SEGMENT_DELIMITER = ',';
     private static final char PATIENT_NAME_DELIMITER = '^';
+    private static final String PID_GROUP_SEPARATOR = ":";
     private static final String END_OF_LINE_SEPARATOR = System.lineSeparator();
 
     public static void main(String[] args) {
@@ -109,14 +110,14 @@ public class ParsePatientName
             }
         }
 
-        return new int[] {beginIndex, endIndex};
+        return new int[] { beginIndex, endIndex };
     }
 
     private void printOutput(final Map<Integer, List<String>> output, long startTime) {
         int index = 0;
         try (OutputStream out = new BufferedOutputStream(System.out, OUTPUT_BUFFER_SIZE)) {
             for (Integer key : output.keySet()) {
-                out.write((index++ + END_OF_LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8));
+                out.write((index++ + PID_GROUP_SEPARATOR + END_OF_LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8));
                 for (String patient : output.get(key)) {
                     out.write((patient + END_OF_LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8));
                 }
