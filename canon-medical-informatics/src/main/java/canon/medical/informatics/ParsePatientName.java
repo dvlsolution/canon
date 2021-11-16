@@ -7,16 +7,7 @@ public class ParsePatientName
 {
     private static final char PID_SEGMENT_DELIMITER = ',';
     private static final char PATIENT_NAME_DELIMITER = '^';
-
-    private static class Pair {
-        int beginIndex;
-        int endIndex;
-
-        public Pair(int beginIndex, int endIndex) {
-            this.beginIndex = beginIndex;
-            this.endIndex = endIndex;
-        }
-    }
+    private static final String END_OF_LINE_SEPARATOR = "\n";
 
     public static void main(String[] args) {
         if (args == null || args.length == 0) {
@@ -67,12 +58,12 @@ public class ParsePatientName
         Optimized solution that minimized number of String objects creation
      */
     private Integer extractPatientName(String line) {
-        final Pair patientFullName = extractPatientFullName(line);
+        final int[] patientFullName = extractPatientFullName(line);
 
         char c;
         int hash = 0;
-        int finding = 0, index = patientFullName.beginIndex;
-        while (finding < 2 && index < patientFullName.endIndex) {
+        int finding = 0, index = patientFullName[0];
+        while (finding < 2 && index < patientFullName[1]) {
             c = line.charAt(index++);
             if (c == PATIENT_NAME_DELIMITER) {
                 finding++;
@@ -85,7 +76,7 @@ public class ParsePatientName
         return hash;
     }
 
-    private Pair extractPatientFullName(String line) {
+    private int[] extractPatientFullName(String line) {
         char c;
         int finding = 0, index = 0, beginIndex = 0, endIndex = 0;
         int length = line.length();
@@ -103,16 +94,16 @@ public class ParsePatientName
             }
         }
 
-        return new Pair(beginIndex, endIndex);
+        return new int[] {beginIndex, endIndex};
     }
 
     private void printOutput(final Map<Integer, List<String>> output) {
         int index = 0;
         try (OutputStream out = new BufferedOutputStream(System.out)) {
             for (Integer key : output.keySet()) {
-                out.write((index++ + "\n").getBytes());
+                out.write((index++ + END_OF_LINE_SEPARATOR).getBytes());
                 for (String patient : output.get(key)) {
-                    out.write((patient + "\n").getBytes());
+                    out.write((patient + END_OF_LINE_SEPARATOR).getBytes());
                 }
             }
             out.flush();
