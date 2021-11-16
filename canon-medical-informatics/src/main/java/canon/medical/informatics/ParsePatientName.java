@@ -1,15 +1,24 @@
 package canon.medical.informatics;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ParsePatientName
 {
+    // double default buffer size, make sense for big files
+    private static final int INPUT_BUFFER_SIZE = 16384;
+    private static final int OUTPUT_BUFFER_SIZE = 16384;
+
+    private static final double NANO_SEC = 1_000_000_000.;
+
     private static final char PID_SEGMENT_DELIMITER = ',';
     private static final char PATIENT_NAME_DELIMITER = '^';
-    private static final String END_OF_LINE_SEPARATOR = "\n";
+    private static final String END_OF_LINE_SEPARATOR = System.lineSeparator();
 
     public static void main(String[] args) {
+        final long startTime = System.nanoTime();
+
         if (args == null || args.length == 0) {
             System.out.println("Wrong input, please add an input file name.");
             return;
@@ -18,7 +27,7 @@ public class ParsePatientName
         ParsePatientName ppn = new ParsePatientName();
         try {
             final Map<Integer, List<String>> output = ppn.parseInputFile(args[0]);
-            ppn.printOutput(output);
+            ppn.printOutput(output, startTime);
         }
         catch (IOException e) {
             System.err.println(e.getMessage());
@@ -26,8 +35,11 @@ public class ParsePatientName
     }
 
     private Map<Integer, List<String>> parseInputFile(String inputFileName) throws IOException {
+        // HashMap can be used if order is not important
         final Map<Integer, List<String>> result = new LinkedHashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(inputFileName))) {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(inputFileName), StandardCharsets.UTF_8), INPUT_BUFFER_SIZE))
+        {
             String line;
             int patientNameHash;
             while ((line = br.readLine()) != null) {
@@ -35,7 +47,10 @@ public class ParsePatientName
                 if (result.containsKey(patientNameHash)) {
                     result.get(patientNameHash).add(line);
                 } else {
-                    result.put(patientNameHash, new ArrayList<>(Arrays.asList(line)));
+                    // ArrayList will work faster for small files
+                    List<String> patientList = new LinkedList<>();
+                    patientList.add(line);
+                    result.put(patientNameHash, patientList);
                 }
             }
         }
@@ -97,15 +112,20 @@ public class ParsePatientName
         return new int[] {beginIndex, endIndex};
     }
 
-    private void printOutput(final Map<Integer, List<String>> output) {
+    private void printOutput(final Map<Integer, List<String>> output, long startTime) {
         int index = 0;
-        try (OutputStream out = new BufferedOutputStream(System.out)) {
+        try (OutputStream out = new BufferedOutputStream(System.out, OUTPUT_BUFFER_SIZE)) {
             for (Integer key : output.keySet()) {
-                out.write((index++ + END_OF_LINE_SEPARATOR).getBytes());
+                out.write((index++ + END_OF_LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8));
                 for (String patient : output.get(key)) {
-                    out.write((patient + END_OF_LINE_SEPARATOR).getBytes());
+                    out.write((patient + END_OF_LINE_SEPARATOR).getBytes(StandardCharsets.UTF_8));
                 }
             }
+
+            final long estimatedTime = System.nanoTime() - startTime;
+            out.write(END_OF_LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8));
+            out.write(("estimatedTime: " + estimatedTime / NANO_SEC).getBytes(StandardCharsets.UTF_8));
+
             out.flush();
         }
         catch (IOException e) {
