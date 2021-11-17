@@ -60,6 +60,11 @@ public class ParsePatientName
 
     /*
         Brute force solution, creates multiple String objects
+        estimatedTime:
+            0.012411486
+            0.011964998
+            0.011312554
+            0.012197491        
      */
 //    private Integer extractPatientName(String line) {
 //        List<String> pidList = Arrays.asList(line.split(","));
@@ -71,6 +76,11 @@ public class ParsePatientName
 
     /*
         Optimized solution that minimized number of String objects creation
+        estimatedTime:
+            0.006491112
+            0.007742388
+            0.008186967
+            0.006614730        
      */
     private Integer extractPatientName(String line) {
         char c;
