@@ -7,8 +7,8 @@ import java.util.*;
 public class ParsePatientName
 {
     // increase default buffer size, make sense for big files
-    private static final int INPUT_BUFFER_SIZE = 32768;
-    private static final int OUTPUT_BUFFER_SIZE = 32768;
+    private static final int INPUT_BUFFER_SIZE = 65536;
+    private static final int OUTPUT_BUFFER_SIZE = 65536;
 
     private static final double NANO_SEC = 1_000_000_000.;
 
@@ -73,43 +73,31 @@ public class ParsePatientName
         Optimized solution that minimized number of String objects creation
      */
     private Integer extractPatientName(String line) {
-        final int[] patientFullName = extractPatientFullName(line);
-
         char c;
-        int hash = 0;
-        int finding = 0, index = patientFullName[0];
-        while (finding < 2 && index < patientFullName[1]) {
+        int index = 0, finding = 0, hash = 0;
+        int length = line.length();
+        boolean isCommaFound = false;
+        while (finding < 2 && index < length) {
             c = line.charAt(index++);
-            if (c == PATIENT_NAME_DELIMITER) {
-                finding++;
-            }
-            else {
-                hash = 31 * hash + Character.toLowerCase(c);
+            if (c == PID_SEGMENT_DELIMITER) {
+                if (isCommaFound) {
+                    // we found the second comma
+                    break;
+                } else {
+                    isCommaFound = true;
+                }
+            } else if (isCommaFound) {
+                if (c == PATIENT_NAME_DELIMITER) {
+                    // we found patient name delimeter
+                    finding++;
+                }
+                else {
+                    hash = 31 * hash + Character.toLowerCase(c);
+                }
             }
         }
 
         return hash;
-    }
-
-    private int[] extractPatientFullName(String line) {
-        char c;
-        int finding = 0, index = 0, beginIndex = 0, endIndex = 0;
-        int length = line.length();
-        while (finding < 2 && index < length) {
-            c = line.charAt(index++);
-            if (c == PID_SEGMENT_DELIMITER) {
-                if (finding == 0) {
-                    beginIndex = index;
-                }
-                else {
-                    endIndex = index - 1;
-                }
-
-                finding++;
-            }
-        }
-
-        return new int[] { beginIndex, endIndex };
     }
 
     private void printOutput(final Map<Integer, List<String>> output, long startTime) {
