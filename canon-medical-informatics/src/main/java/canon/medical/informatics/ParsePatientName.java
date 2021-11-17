@@ -88,7 +88,7 @@ public class ParsePatientName
                 }
             } else if (isCommaFound) {
                 if (c == PATIENT_NAME_DELIMITER) {
-                    // we found patient name delimeter
+                    // we found patient name delimiter
                     finding++;
                 }
                 else {
