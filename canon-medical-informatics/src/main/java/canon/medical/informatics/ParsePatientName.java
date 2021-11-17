@@ -61,12 +61,12 @@ public class ParsePatientName
     /*
         Brute force solution, creates multiple String objects
      */
-//    private String extractPatientName(String line) {
+//    private Integer extractPatientName(String line) {
 //        List<String> pidList = Arrays.asList(line.split(","));
 //        String patientName = pidList.get(1);
 //        List<String> patientNameList = Arrays.asList(patientName.split("\\^"));
 //
-//        return (patientNameList.get(0) + patientNameList.get(1)).toLowerCase();
+//        return (patientNameList.get(0) + patientNameList.get(1)).toLowerCase().hashCode();
 //    }
 
     /*
